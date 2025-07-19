@@ -116,6 +116,28 @@ sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 ```
 
+---
+
+## ✅ Enable IP Forwarding (Required)
+
+Kubernetes requires IP forwarding to be enabled. Without this, `kubeadm init` will fail with a fatal preflight error.
+
+Run the following on **all nodes** (master and workers):
+
+```bash
+# Temporarily enable IP forwarding
+sudo sysctl -w net.ipv4.ip_forward=1
+
+# Make it persistent
+echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p
+```
+
+> ⚠️ If you skip this, you may get:
+> `[ERROR FileContent--proc-sys-net-ipv4-ip_forward]: contents are not set to 1`
+
+---
+
 ## Initialize Kubernetes on Master
 
 ```bash
@@ -130,6 +152,38 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 # Apply Flannel CNI plugin
 kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
 ```
+
+---
+
+## ⚠️ Optional: Fix Pause Image Version Warning
+
+You may see this warning during `kubeadm init`:
+
+```
+WARNING: detected that the sandbox image "pause:3.8" is inconsistent with kubeadm's expected "pause:3.9"
+```
+
+To fix this:
+
+```bash
+# Pull correct image
+sudo ctr image pull registry.k8s.io/pause:3.9
+
+# Update containerd config
+sudo nano /etc/containerd/config.toml
+
+# Find and replace:
+sandbox_image = "registry.k8s.io/pause:3.8"
+# With:
+sandbox_image = "registry.k8s.io/pause:3.9"
+
+# Restart containerd
+sudo systemctl restart containerd
+```
+
+Then re-run `kubeadm init` if needed.
+
+---
 
 ## Join Worker Nodes
 
@@ -157,5 +211,5 @@ Use `kubectl get pods`, `kubectl get services`, `kubectl logs` etc. to manage th
 ## Notes
 
 * Use `vagrant destroy -f && vagrant up` for a clean start.
-* Ensure your system has at least 8-12 GB RAM.
+* Ensure your system has at least 8–12 GB RAM.
 * This setup is for **local development** purposes only.
