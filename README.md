@@ -5,8 +5,8 @@ This project sets up a multi-node Kubernetes cluster using Vagrant with one mast
 ## Cluster Architecture
 
 * **Master Node**: `192.168.56.10` (2 GB RAM, 2 CPUs)
-* **Worker Node 1**: `192.168.56.11` (2 GB RAM, 2 CPUs)
-* **Worker Node 2**: `192.168.56.12` (2 GB RAM, 2 CPUs)
+* **Worker Node 1**: `192.168.56.11` (1 GB RAM, 1 CPU)
+* **Worker Node 2**: `192.168.56.12` (1 GB RAM, 1 CPUs)
 
 All nodes run Ubuntu 20.04 LTS (Focal Fossa) and come pre-configured with containerd and essential Kubernetes prerequisites.
 
@@ -120,7 +120,7 @@ sudo apt-mark hold kubelet kubeadm kubectl
 
 ## ✅ Enable IP Forwarding (Required)
 
-Kubernetes requires IP forwarding to be enabled. Without this, `kubeadm init` will fail with a fatal preflight error.
+Kubernetes requires IP forwarding to be enabled. Without this, `kubeadm init` or `kubeadm join` may fail with fatal preflight errors.
 
 Run the following on **all nodes** (master and workers):
 
@@ -193,6 +193,24 @@ kubeadm token create --print-join-command
 
 # Run the output join command on worker1 and worker2 (with sudo)
 ```
+
+If you get the following error:
+
+```
+[ERROR IsPrivilegedUser]: user is not running as root
+```
+
+Run the command with `sudo`.
+
+If you get:
+
+```
+[ERROR FileContent--proc-sys-net-ipv4-ip_forward]: contents are not set to 1
+```
+
+Then make sure IP forwarding is enabled as shown earlier.
+
+---
 
 ## Verify Cluster
 
