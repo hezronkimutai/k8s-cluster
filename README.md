@@ -149,11 +149,14 @@ mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-# Apply Flannel CNI plugin
+# Apply Flannel CNI plugin (required to get nodes to Ready state)
 kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
 ```
 
 > 📝 You only need to configure `kubectl` like this on the master node if you plan to run cluster commands from there. Worker nodes do not need this step.
+
+> ✅ If your nodes show `NotReady`, check that the Flannel CNI plugin was applied successfully using:
+> `kubectl get pods -n kube-flannel`
 
 ---
 
@@ -219,6 +222,10 @@ Then make sure IP forwarding is enabled as shown earlier.
 ```bash
 kubectl get nodes
 ```
+
+Nodes should show `Ready` if networking and CNI (Flannel) are working correctly.
+
+---
 
 ## Access Frontend
 
