@@ -144,7 +144,7 @@ sudo sysctl -p
 # On master node
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=192.168.56.10
 
-# Configure kubectl for vagrant user
+# Configure kubectl for vagrant user (on master only)
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
@@ -152,6 +152,8 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 # Apply Flannel CNI plugin
 kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
 ```
+
+> 📝 You only need to configure `kubectl` like this on the master node if you plan to run cluster commands from there. Worker nodes do not need this step.
 
 ---
 
