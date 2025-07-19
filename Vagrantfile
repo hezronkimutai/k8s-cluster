@@ -6,16 +6,21 @@ Vagrant.configure("2") do |config|
   }
 
   config.vm.box = "ubuntu/focal64"
+  config.ssh.insert_key = false  # Helps avoid SSH key mismatch issues
 
   nodes.each do |name, ip|
     config.vm.define name do |node|
       node.vm.hostname = name
       node.vm.network "private_network", ip: ip
+      node.vm.boot_timeout = 600
+
       node.vm.provider "virtualbox" do |vb|
-        vb.memory = 2048
-        vb.cpus = 2
+        vb.memory = 1024   # Reduced from 2048
+        vb.cpus = 1        # Reduced from 2
       end
+
       node.vm.provision "shell", inline: <<-SHELL
+        export DEBIAN_FRONTEND=noninteractive
         apt-get update
         apt-get install -y curl containerd apt-transport-https
         swapoff -a
