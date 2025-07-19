@@ -15,8 +15,13 @@ Vagrant.configure("2") do |config|
       node.vm.boot_timeout = 600
 
       node.vm.provider "virtualbox" do |vb|
-        vb.memory = 1024   # Reduced from 2048
-        vb.cpus = 1        # Reduced from 2
+        if name == "master"
+          vb.memory = 2048
+          vb.cpus = 2
+        else
+          vb.memory = 1024
+          vb.cpus = 1
+        end
       end
 
       node.vm.provision "shell", inline: <<-SHELL
