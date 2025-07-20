@@ -36,11 +36,15 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Cleanup existing VMs
+# Cleanup existing VMs and prune system
 cleanup_vms() {
     log_info "Cleaning up any existing VMs..."
     vagrant destroy -f
-    log_success "Cleanup completed"
+    
+    log_info "Pruning Vagrant global state..."
+    vagrant global-status --prune >/dev/null 2>&1
+    
+    log_success "Cleanup and pruning completed"
     echo ""
 }
 

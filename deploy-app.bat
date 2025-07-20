@@ -4,6 +4,19 @@ echo    HTML App Deployment Script
 echo ======================================
 echo.
 
+echo [INFO] Cleaning up any existing VMs...
+vagrant destroy -f 2>nul
+if %errorlevel% equ 0 (
+    echo [SUCCESS] Existing VMs destroyed
+) else (
+    echo [INFO] No existing VMs found to destroy
+)
+
+echo [INFO] Pruning Vagrant global state...
+vagrant global-status --prune >nul 2>&1
+echo [SUCCESS] Vagrant cleanup completed
+echo.
+
 echo [INFO] Deploying HTML application to Kubernetes cluster...
 
 echo [INFO] Applying deployment manifest...

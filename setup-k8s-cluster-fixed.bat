@@ -51,6 +51,20 @@ if %errorlevel% neq 0 (
 echo [SUCCESS] Prerequisites check passed
 echo.
 
+REM Clean up any existing VMs and prune system
+echo [INFO] Cleaning up any existing VMs...
+vagrant destroy -f 2>nul
+if %errorlevel% equ 0 (
+    echo [SUCCESS] Existing VMs destroyed
+) else (
+    echo [INFO] No existing VMs found to destroy
+)
+
+echo [INFO] Pruning Vagrant global state...
+vagrant global-status --prune >nul 2>&1
+echo [SUCCESS] Vagrant cleanup completed
+echo.
+
 REM Start Vagrant VMs
 echo [INFO] Starting Vagrant VMs...
 vagrant up
