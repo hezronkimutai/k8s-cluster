@@ -10,7 +10,11 @@ echo - Backend API service
 echo - Prometheus monitoring
 echo - Grafana dashboards
 
-vagrant ssh master -c "kubectl apply -f /vagrant/k8s-manifests/all-in-one.yaml"
+vagrant ssh master -c "kubectl apply -f /vagrant/k8s-manifests/monitoring-namespace.yaml"
+vagrant ssh master -c "kubectl apply -f /vagrant/k8s-manifests/frontend-app.yaml"
+vagrant ssh master -c "kubectl apply -f /vagrant/k8s-manifests/backend-app.yaml"
+vagrant ssh master -c "kubectl apply -f /vagrant/k8s-manifests/prometheus.yaml"
+vagrant ssh master -c "kubectl apply -f /vagrant/k8s-manifests/grafana.yaml"
 
 echo.
 echo [INFO] Waiting for pods to start...
