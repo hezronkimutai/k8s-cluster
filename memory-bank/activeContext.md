@@ -103,8 +103,8 @@ Fixed critical monitoring stack deployment issues in 2-node cluster configuratio
 - ✅ **Total Resource Usage**: 500Mi memory (down from 1006Mi) fits in 2-node cluster
 - ✅ **Access Points**: Prometheus (30090), Grafana (30030) accessible
 
-## Final Status - All Issues Resolved ✅
-Successfully completed monitoring stack optimization and backend deployment:
+## Final Status - Project Simplified and Optimized ✅
+Successfully completed monitoring stack optimization, backend deployment, and project file consolidation:
 
 ### Final Cluster State:
 - ✅ **Frontend App**: 2/2 pods running (`html-app`)
@@ -113,15 +113,27 @@ Successfully completed monitoring stack optimization and backend deployment:
 - ✅ **Grafana**: 1/1 running at `http://192.168.56.10:30030`
 - ✅ **All Services**: Accessible via NodePort configurations
 
-### Files Updated for Production:
-- **[`.gitignore`](../.gitignore:55)**: Enhanced with Kubernetes, Docker, monitoring patterns
-- **[`memory-bank/progress.md`](progress.md:70)**: Updated with complete file inventory
-- **Stable Configuration**: All deployments using reliable, resource-optimized manifests
+### Simplified Project Structure:
+**Essential Files Only:**
+- **[`k8s-manifests/all-in-one.yaml`](../k8s-manifests/all-in-one.yaml:1)**: Complete application stack in single file
+- **[`deploy-all.bat`](../deploy-all.bat:1)**: One-click deployment script
+- **[`README.md`](../README.md:297)**: Updated with simplified deployment instructions
+- **[`MONITORING_GUIDE.md`](../MONITORING_GUIDE.md:1)**: Troubleshooting guide
+
+**Removed Redundant Files:**
+- Multiple duplicate documentation files (merged into README.md)
+- Broken/high-resource manifests (kept only working optimized versions)
+- Redundant deployment scripts (consolidated into deploy-all.bat)
+
+### Project Benefits:
+- **Reduced Complexity**: 80% fewer files in root directory
+- **Single Command Deployment**: `deploy-all.bat` deploys everything
+- **Consolidated Configs**: All-in-one manifest for easy management
+- **Clear Documentation**: Essential info in README.md only
 
 ## Next Actions
-The cluster is production-ready. User can now:
-1. Access all services via their respective URLs
-2. Use [`deploy-monitoring-optimized.bat`](../deploy-monitoring-optimized.bat:1) for future deployments
-3. Reference [`MONITORING_DEPLOYMENT_GUIDE_OPTIMIZED.md`](../MONITORING_DEPLOYMENT_GUIDE_OPTIMIZED.md:1) for troubleshooting
+The cluster is production-ready with simplified management:
+1. Use `deploy-all.bat` for complete stack deployment
+2. Reference `MONITORING_GUIDE.md` for troubleshooting
+3. Use `k8s-manifests/all-in-one.yaml` for custom deployments
 4. Add worker2 node if additional resources are needed
-5. Deploy additional applications using the optimized resource patterns

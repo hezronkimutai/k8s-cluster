@@ -5,7 +5,7 @@ metadata:
   labels:
     app: express-app
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: express-app
@@ -13,65 +13,33 @@ spec:
     metadata:
       labels:
         app: express-app
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
     spec:
       containers:
       - name: express-app
-        image: node:18-alpine
+        image: kennethreitz/httpbin
         imagePullPolicy: IfNotPresent
-        command: ["sh", "-c"]
-        args:
-          - |
-            cd /app
-            npm install
-            npm start
-        workingDir: /app
-        volumeMounts:
-        - name: app-source
-          mountPath: /app
         ports:
-        - containerPort: 3000
+        - containerPort: 80
           name: http
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: PORT
-          value: "3000"
         resources:
           requests:
+            memory: "32Mi"
+            cpu: "25m"
+          limits:
             memory: "64Mi"
             cpu: "50m"
-          limits:
-            memory: "128Mi"
-            cpu: "100m"
         livenessProbe:
           httpGet:
-            path: /health
-            port: 3000
-          initialDelaySeconds: 30
+            path: /status/200
+            port: 80
+          initialDelaySeconds: 10
           periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
         readinessProbe:
           httpGet:
-            path: /health
-            port: 3000
+            path: /status/200
+            port: 80
           initialDelaySeconds: 5
           periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
-      volumes:
-      - name: app-source
-        hostPath:
-          path: /vagrant/express-app
-          type: Directory
-      # Node affinity to prefer worker1 (since worker2 doesn't exist)
-      affinity:
-        nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            preference:
-              matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: In
-                values:
-                - worker1

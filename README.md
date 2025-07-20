@@ -294,33 +294,46 @@ If VMs fail to start due to memory constraints:
 - Reduce VM memory allocation in the [`Vagrantfile`](Vagrantfile)
 - Ensure your host system has sufficient available RAM
 
-## Monitoring Stack (Grafana + Prometheus)
+## Quick Deployment
 
-This cluster includes a complete monitoring stack with Grafana and Prometheus for observability and metrics collection.
-
-### Resource Considerations
-
-**For 2-Node Clusters (Limited Resources):**
-Use the optimized configuration designed for resource-constrained environments:
+Deploy the complete application stack (frontend, backend, and monitoring) with one command:
 
 ```bash
-# Windows - Optimized for 2-node cluster
-deploy-monitoring-optimized.bat
-```
-
-**For 3-Node Clusters (Full Resources):**
-Use the full-feature configuration:
-
-```bash
-# Windows - Full feature set
-deploy-monitoring.bat
+# Windows
+deploy-all.bat
 
 # Linux/macOS
-chmod +x deploy-monitoring.sh && ./deploy-monitoring.sh
+./deploy-all.sh
+```
+
+This deploys:
+- **Frontend HTML App**: Static web application
+- **Backend API**: RESTful service with test endpoints
+- **Prometheus**: Metrics collection and monitoring
+- **Grafana**: Visualization dashboards
+
+### Access Points
+- **Frontend**: `http://192.168.56.10:30080`
+- **Backend API**: `http://192.168.56.10:30081`
+- **Prometheus**: `http://192.168.56.10:30090`
+- **Grafana**: `http://192.168.56.10:30030` (admin/admin123)
+
+### Manual Deployment
+For granular control, use individual manifests:
+
+```bash
+# Complete stack
+kubectl apply -f k8s-manifests/all-in-one.yaml
+
+# Or individual components
+kubectl apply -f k8s-manifests/prometheus.yaml
+kubectl apply -f k8s-manifests/grafana.yaml
+kubectl apply -f k8s-manifests/express-deployment.yaml
+kubectl apply -f k8s-manifests/express-service.yaml
 ```
 
 ### Troubleshooting
-If you encounter `Pending` pods or `ImagePullBackOff` errors, see [`MONITORING_DEPLOYMENT_GUIDE_OPTIMIZED.md`](MONITORING_DEPLOYMENT_GUIDE_OPTIMIZED.md) for comprehensive troubleshooting and resource optimization guidance.
+For issues with pod deployment or resource constraints, see [`MONITORING_GUIDE.md`](MONITORING_GUIDE.md).
 
 ### Manual Deployment
 
