@@ -1,0 +1,182 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: express-app
+  labels:
+    app: express-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: express-app
+  template:
+    metadata:
+      labels:
+        app: express-app
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+    spec:
+      containers:
+      - name: express-app
+        image: node:18-alpine
+        imagePullPolicy: IfNotPresent
+        command: ["sh", "-c"]
+        args:
+          - |
+            cd /app
+            cat > package.json << 'EOF'
+            {
+              "name": "simple-express-app",
+              "version": "1.0.0",
+              "description": "A simple Express.js application for Kubernetes deployment",
+              "main": "app.js",
+              "scripts": {
+                "start": "node app.js"
+              },
+              "dependencies": {
+                "express": "^4.18.2"
+              }
+            }
+            EOF
+            
+            cat > app.js << 'EOF'
+            const express = require('express');
+            const path = require('path');
+            
+            const app = express();
+            const PORT = process.env.PORT || 3000;
+            
+            // Middleware
+            app.use(express.json());
+            app.use(express.static('public'));
+            
+            // Routes
+            app.get('/', (req, res) => {
+                res.json({
+                    message: 'Welcome to Simple Express.js App!',
+                    timestamp: new Date().toISOString(),
+                    version: '1.0.0',
+                    environment: process.env.NODE_ENV || 'development',
+                    hostname: require('os').hostname()
+                });
+            });
+            
+            app.get('/health', (req, res) => {
+                res.status(200).json({
+                    status: 'healthy',
+                    timestamp: new Date().toISOString(),
+                    uptime: process.uptime(),
+                    hostname: require('os').hostname()
+                });
+            });
+            
+            app.get('/api/info', (req, res) => {
+                res.json({
+                    app: 'Simple Express.js App',
+                    version: '1.0.0',
+                    node_version: process.version,
+                    platform: process.platform,
+                    memory_usage: process.memoryUsage(),
+                    hostname: require('os').hostname(),
+                    timestamp: new Date().toISOString()
+                });
+            });
+            
+            app.get('/api/users', (req, res) => {
+                const users = [
+                    { id: 1, name: 'John Doe', email: 'john@example.com' },
+                    { id: 2, name: 'Jane Smith', email: 'jane@example.com' },
+                    { id: 3, name: 'Bob Johnson', email: 'bob@example.com' }
+                ];
+                res.json({
+                    users: users,
+                    count: users.length,
+                    timestamp: new Date().toISOString()
+                });
+            });
+            
+            app.get('/metrics', (req, res) => {
+                const memUsage = process.memoryUsage();
+                const metrics = [
+                    '# HELP nodejs_memory_usage_bytes Memory usage in bytes',
+                    '# TYPE nodejs_memory_usage_bytes gauge',
+                    `nodejs_memory_usage_bytes{type="rss"} ${memUsage.rss}`,
+                    `nodejs_memory_usage_bytes{type="heapTotal"} ${memUsage.heapTotal}`,
+                    `nodejs_memory_usage_bytes{type="heapUsed"} ${memUsage.heapUsed}`,
+                    `nodejs_memory_usage_bytes{type="external"} ${memUsage.external}`,
+                    '',
+                    '# HELP nodejs_uptime_seconds Process uptime in seconds',
+                    '# TYPE nodejs_uptime_seconds gauge',
+                    `nodejs_uptime_seconds ${process.uptime()}`,
+                    ''
+                ].join('\n');
+                res.set('Content-Type', 'text/plain');
+                res.send(metrics);
+            });
+            
+            // Error handling middleware
+            app.use((err, req, res, next) => {
+                console.error(err.stack);
+                res.status(500).json({
+                    error: 'Something went wrong!',
+                    timestamp: new Date().toISOString()
+                });
+            });
+            
+            // 404 handler
+            app.use('*', (req, res) => {
+                res.status(404).json({
+                    error: 'Route not found',
+                    path: req.originalUrl,
+                    timestamp: new Date().toISOString()
+                });
+            });
+            
+            // Start server
+            app.listen(PORT, '0.0.0.0', () => {
+                console.log(`Express server running on port ${PORT}`);
+                console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+                console.log(`Hostname: ${require('os').hostname()}`);
+                console.log(`Available routes:`);
+                console.log(`  GET / - Welcome message`);
+                console.log(`  GET /health - Health check`);
+                console.log(`  GET /api/info - Application info`);
+                console.log(`  GET /api/users - Sample users data`);
+                console.log(`  GET /metrics - Prometheus metrics`);
+            });
+            EOF
+            
+            npm install
+            npm start
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
