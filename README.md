@@ -298,17 +298,29 @@ If VMs fail to start due to memory constraints:
 
 This cluster includes a complete monitoring stack with Grafana and Prometheus for observability and metrics collection.
 
-### Quick Deployment
+### Resource Considerations
 
-Deploy the monitoring stack with the automated script:
+**For 2-Node Clusters (Limited Resources):**
+Use the optimized configuration designed for resource-constrained environments:
 
 ```bash
-# Windows
+# Windows - Optimized for 2-node cluster
+deploy-monitoring-optimized.bat
+```
+
+**For 3-Node Clusters (Full Resources):**
+Use the full-feature configuration:
+
+```bash
+# Windows - Full feature set
 deploy-monitoring.bat
 
 # Linux/macOS
 chmod +x deploy-monitoring.sh && ./deploy-monitoring.sh
 ```
+
+### Troubleshooting
+If you encounter `Pending` pods or `ImagePullBackOff` errors, see [`MONITORING_DEPLOYMENT_GUIDE_OPTIMIZED.md`](MONITORING_DEPLOYMENT_GUIDE_OPTIMIZED.md) for comprehensive troubleshooting and resource optimization guidance.
 
 ### Manual Deployment
 

@@ -52,3 +52,34 @@ yarn-error.log*
 # Temporary files
 tmp/
 temp/
+
+# Kubernetes
+*.kubeconfig
+kubeconfig
+.kube/
+cluster-admin.conf
+admin.conf
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Node.js (for express-app)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Monitoring data
+prometheus-data/
+grafana-data/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Project specific
+vagrant-ssh/
+cluster-state/
+.terraform/
+terraform.tfstate*
