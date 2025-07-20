@@ -13,7 +13,7 @@ This project provisions a local multi-node Kubernetes cluster using **Vagrant** 
 
 * **OS**: Windows 10/11 64-bit
 * **CPU**: 4 cores (your i5-1135G7 is fine)
-* **RAM**: At least 8–12 GB (you have 12 GB ✅)
+* **RAM**: At least 8–12 GB
 * **Storage**: 20+ GB free
 
 ---
@@ -22,21 +22,21 @@ This project provisions a local multi-node Kubernetes cluster using **Vagrant** 
 
 ### 1. Install [Vagrant](https://www.vagrantup.com/downloads)
 
-Download the `.msi` installer and run as Administrator. Reboot your PC after install.
+Run the `.msi` installer as Administrator. Reboot your PC after installation.
 
 ### 2. Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
 
-Use the Windows host version. Run the installer normally.
+Use the "Windows hosts" version.
 
-### 3. Disable Hyper-V (important!)
+### 3. Disable Hyper-V
 
-VirtualBox won't run properly if Hyper-V is enabled. Open **Command Prompt as Administrator** and run:
+VirtualBox requires Hyper-V to be off. Run in Administrator Command Prompt:
 
 ```powershell
 bcdedit /set hypervisorlaunchtype off
 ```
 
-Then restart your system.
+Restart your system afterward.
 
 ---
 
@@ -49,30 +49,26 @@ git clone https://github.com/hezronkimutai/k8s-cluster.git
 cd k8s-cluster
 ```
 
-### 2. Launch the Kubernetes Cluster
+### 2. Launch the Cluster
 
 ```bash
 vagrant up
 ```
 
-This will:
-
-* Start and provision 3 Ubuntu VMs
-* Install `containerd` and disable swap
-* Configure private networking
+This provisions 3 Ubuntu VMs and sets up containerd, disables swap, and configures networking.
 
 ---
 
 ## 🔧 Manual Kubernetes Setup
 
-After VMs are ready, run the following on **all nodes** (master, worker1, worker2):
+### On all nodes (master, worker1, worker2):
 
 ```bash
-vagrant ssh master    # or worker1, worker2
+vagrant ssh <node-name>
 
-# Inside each VM:
 sudo mkdir -p /etc/apt/keyrings
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | \
+  sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" | \
   sudo tee /etc/apt/sources.list.d/kubernetes.list > /dev/null
@@ -83,7 +79,7 @@ sudo apt-mark hold kubelet kubeadm kubectl
 
 # Enable IP forwarding
 sudo sysctl -w net.ipv4.ip_forward=1
-echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf
+sudo tee -a /etc/sysctl.conf <<< 'net.ipv4.ip_forward=1'
 sudo sysctl -p
 ```
 
@@ -91,43 +87,49 @@ sudo sysctl -p
 
 ## 🚀 Initialize Cluster on Master
 
-SSH into the master:
-
 ```bash
 vagrant ssh master
-```
 
-Then:
+sudo kubeadm init \
+  --pod-network-cidr=192.168.0.0/16 \
+  --apiserver-advertise-address=192.168.56.10
 
-```bash
-sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=192.168.56.10
-```
-
-Set up `kubectl`:
-
-```bash
 mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo cp /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
-```
-
-Apply Flannel CNI:
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
 ```
 
 ---
 
-## 🤝 Join Workers
+## 🌐 Install Calico (CNI Plugin)
 
-Back on master, get the join command:
+Use Calico instead of Flannel:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml
+```
+
+> This installs a CNI plugin compatible with the `192.168.0.0/16` CIDR.
+
+---
+
+## 🤝 Join Worker Nodes
+
+On the master node:
 
 ```bash
 kubeadm token create --print-join-command
 ```
 
-SSH into `worker1` and `worker2`, and run the printed command with `sudo`.
+Copy and run the command on `worker1` and `worker2`:
+
+```bash
+vagrant ssh worker1
+sudo <paste-join-command>
+
+vagrant ssh worker2
+sudo <paste-join-command>
+```
 
 ---
 
@@ -143,11 +145,11 @@ All nodes should show `STATUS = Ready`.
 
 ## 🧪 Deploy Sample App (Express.js + Static Frontend)
 
-### 1. Prepare Your Docker Images
+### 1. Build & Push Docker Images
 
-Push Express.js and frontend images to Docker Hub or another accessible registry.
+Push your backend and frontend Docker images to Docker Hub or similar.
 
-### 2. Example `express-backend.yaml`
+### 2. `express-backend.yaml`
 
 ```yaml
 apiVersion: apps/v1
@@ -183,7 +185,7 @@ spec:
   type: NodePort
 ```
 
-### 3. Example `frontend.yaml`
+### 3. `frontend.yaml`
 
 ```yaml
 apiVersion: apps/v1
@@ -226,11 +228,9 @@ spec:
 kubectl apply -f manifests/
 ```
 
-### 5. Access Your App
+### 5. Access the App
 
-Open in browser:
-
-```
+```text
 http://192.168.56.10:30080
 ```
 
@@ -256,8 +256,8 @@ vagrant up
 * [x] Hyper-V disabled
 * [x] VMs running
 * [x] Kubernetes initialized
-* [x] Flannel installed
-* [x] Apps deployed and reachable at `192.168.56.10:30080`
+* [x] Calico installed
+* [x] App deployed and reachable
 
 ---
 
