@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Kubernetes Cluster Setup Script
-# This script automates the setup of a 2-node Kubernetes cluster using Vagrant
+# This script automates the setup of a 3-node Kubernetes cluster using Vagrant
 # Compatible with Linux and macOS systems
 # Includes automatic HTML application deployment
 
@@ -102,7 +102,7 @@ start_vagrant_vms() {
 install_kubernetes_on_all_nodes() {
     log_info "Installing Kubernetes on all nodes..."
     
-    for node in master worker1; do
+    for node in master worker1 worker2; do
         log_info "Installing Kubernetes on $node..."
         
         vagrant ssh $node -c '
@@ -177,7 +177,7 @@ join_worker_nodes() {
     log_info "Join command retrieved: $JOIN_COMMAND"
     
     # Join worker nodes
-    for worker in worker1; do
+    for worker in worker1 worker2; do
         log_info "Joining $worker to the cluster..."
         
         vagrant ssh $worker -c "sudo $JOIN_COMMAND"
@@ -234,6 +234,39 @@ deploy_html_app() {
     log_success "HTML application deployed successfully!"
 }
 
+# Deploy Express.js application
+deploy_express_app() {
+    log_info "Building and deploying Express.js application..."
+    
+    # Build Docker image for Express.js app
+    vagrant ssh master -c 'cd /vagrant/express-app && sudo docker build -t express-app:latest .'
+    if [ $? -ne 0 ]; then
+        log_error "Failed to build Express.js Docker image"
+        exit 1
+    fi
+    log_success "Express.js Docker image built successfully"
+    
+    # Deploy the Express.js application
+    vagrant ssh master -c 'kubectl apply -f /vagrant/k8s-manifests/express-deployment.yaml'
+    if [ $? -ne 0 ]; then
+        log_error "Failed to deploy Express.js application"
+        exit 1
+    fi
+    
+    # Deploy the Express.js service
+    vagrant ssh master -c 'kubectl apply -f /vagrant/k8s-manifests/express-service.yaml'
+    if [ $? -ne 0 ]; then
+        log_error "Failed to create Express.js service"
+        exit 1
+    fi
+    
+    # Wait for Express.js pods to be ready
+    log_info "Waiting for Express.js app pods to be ready..."
+    vagrant ssh master -c 'kubectl wait --for=condition=ready pod -l app=express-app --timeout=120s'
+    
+    log_success "Express.js application deployed successfully!"
+}
+
 # Display final status
 display_final_status() {
     log_info "Final cluster status:"
@@ -249,11 +282,18 @@ display_access_info() {
     echo ""
     log_info "Cluster Information:"
     echo "  - Master Node: 192.168.56.10"
-    echo "  - Worker Node: 192.168.56.11"
+    echo "  - Worker Node 1: 192.168.56.11"
+    echo "  - Worker Node 2: 192.168.56.12"
     echo ""
-    log_info "Access your HTML application at:"
-    echo "  http://192.168.56.10:30080  (Master Node)"
-    echo "  http://192.168.56.11:30080  (Worker Node)"
+    log_info "Application Access:"
+    echo "  - HTML App: http://192.168.56.10:30080, http://192.168.56.11:30080, http://192.168.56.12:30080"
+    echo "  - Express.js API: http://192.168.56.10:30081, http://192.168.56.11:30081, http://192.168.56.12:30081"
+    echo ""
+    log_info "Express.js API Endpoints:"
+    echo "  - GET / - Welcome message"
+    echo "  - GET /health - Health check"
+    echo "  - GET /api/info - Application info"
+    echo "  - GET /api/users - Sample users data"
     echo ""
     log_info "To access the cluster:"
     echo "  vagrant ssh master"
@@ -280,6 +320,7 @@ main() {
     join_worker_nodes
     verify_cluster
     deploy_html_app
+    deploy_express_app
     display_final_status
     display_access_info
     

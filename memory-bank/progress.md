@@ -17,10 +17,10 @@ The Kubernetes cluster setup script is actively running in Terminal 2. The autom
 ## Current Execution Phase
 The setup script is running through these automated steps:
 - ✅ Prerequisites validation (Vagrant + VirtualBox)
-- 🔄 VM provisioning (master: 192.168.56.10, worker1: 192.168.56.11)
-- ⏳ Kubernetes installation on both nodes
+- 🔄 VM provisioning (master: 192.168.56.10, worker1: 192.168.56.11, worker2: 192.168.56.12)
+- ⏳ Kubernetes installation on all three nodes
 - ⏳ Master node initialization with Calico CNI
-- ⏳ Worker node joining to cluster
+- ⏳ Worker nodes joining to cluster
 - ⏳ Cluster verification and status check
 
 ## Expected Timeline

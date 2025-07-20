@@ -79,7 +79,7 @@ echo.
 REM Install Kubernetes on all nodes
 echo [INFO] Installing Kubernetes on all nodes...
 
-for %%n in (master worker1) do (
+for %%n in (master worker1 worker2) do (
     echo [INFO] Installing Kubernetes on %%n...
     
     vagrant ssh %%n -c "sudo mkdir -p /etc/apt/keyrings && curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg && echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list > /dev/null && sudo apt-get update && sudo apt-get install -y kubelet kubeadm kubectl && sudo apt-mark hold kubelet kubeadm kubectl && sudo sysctl -w net.ipv4.ip_forward=1 && echo 'net.ipv4.ip_forward=1' | sudo tee -a /etc/sysctl.conf && sudo sysctl -p"
@@ -129,7 +129,7 @@ echo [INFO] Join command retrieved
 echo.
 
 REM Join worker nodes
-for %%w in (worker1) do (
+for %%w in (worker1 worker2) do (
     echo [INFO] Joining %%w to the cluster...
     
     vagrant ssh %%w -c "sudo !join_command!"
@@ -145,6 +145,37 @@ for %%w in (worker1) do (
 
 REM Clean up temporary file
 del "%tempfile%" 2>nul
+echo.
+
+REM Build and deploy Express.js application
+echo [INFO] Building and deploying Express.js application...
+
+REM Copy Express app to master node and build Docker image
+vagrant ssh master -c "cd /vagrant/express-app && sudo docker build -t express-app:latest ."
+
+if %errorlevel% neq 0 (
+    echo [ERROR] Failed to build Express.js Docker image
+    pause
+    exit /b 1
+)
+echo [SUCCESS] Express.js Docker image built successfully
+
+REM Deploy Express.js application
+vagrant ssh master -c "kubectl apply -f /vagrant/k8s-manifests/express-deployment.yaml"
+if %errorlevel% neq 0 (
+    echo [ERROR] Failed to deploy Express.js application
+    pause
+    exit /b 1
+)
+
+vagrant ssh master -c "kubectl apply -f /vagrant/k8s-manifests/express-service.yaml"
+if %errorlevel% neq 0 (
+    echo [ERROR] Failed to create Express.js service
+    pause
+    exit /b 1
+)
+
+echo [SUCCESS] Express.js application deployed successfully
 echo.
 
 REM Verify cluster status
@@ -163,14 +194,22 @@ echo [SUCCESS] Kubernetes cluster setup completed!
 echo.
 echo [INFO] Cluster Information:
 echo   - Master Node: 192.168.56.10
-echo   - Worker Node: 192.168.56.11
+echo   - Worker Node 1: 192.168.56.11
+echo   - Worker Node 2: 192.168.56.12
 echo.
 echo [INFO] To access the cluster:
 echo   vagrant ssh master
 echo   kubectl get nodes
 echo.
-echo [INFO] To deploy applications, you can access the frontend at:
-echo   http://192.168.56.10:30080 (after deploying your apps)
+echo [INFO] Application Access:
+echo   - HTML App: http://192.168.56.10:30080, http://192.168.56.11:30080, http://192.168.56.12:30080
+echo   - Express.js API: http://192.168.56.10:30081, http://192.168.56.11:30081, http://192.168.56.12:30081
+echo.
+echo [INFO] Express.js API Endpoints:
+echo   - GET / - Welcome message
+echo   - GET /health - Health check
+echo   - GET /api/info - Application info
+echo   - GET /api/users - Sample users data
 echo.
 echo [INFO] Useful commands:
 echo   vagrant status           # Check VM status

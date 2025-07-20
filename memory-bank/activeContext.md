@@ -42,5 +42,19 @@ The user encountered a VirtualBox PATH detection issue when running the Kubernet
 - ✅ Cross-platform compatibility ensured
 - 🔄 Setup script currently running successfully
 
+## Latest Changes - Worker Node 2 Added ✅
+Added second worker node (worker2) to create a 3-node Kubernetes cluster:
+
+### Files Updated:
+1. **[`Vagrantfile`](../Vagrantfile:2)**: Added worker2 node at 192.168.56.12
+2. **[`setup-k8s-cluster-fixed.bat`](../setup-k8s-cluster-fixed.bat:82)**: Updated installation and join loops for worker2
+3. **[`setup-k8s-cluster.sh`](../setup-k8s-cluster.sh:105)**: Updated Linux/macOS script for worker2
+4. **Memory Bank**: Updated cluster configuration documentation
+
+### New Cluster Configuration:
+- **Master Node**: 192.168.56.10 (2GB RAM, 2 CPUs)
+- **Worker Node 1**: 192.168.56.11 (1GB RAM, 1 CPU)
+- **Worker Node 2**: 192.168.56.12 (1GB RAM, 1 CPU)
+
 ## Next Actions
-User can now reliably run the Kubernetes cluster setup using the improved scripts, regardless of VirtualBox PATH configuration.
+User can now run the setup scripts to create a 3-node Kubernetes cluster with enhanced scalability and redundancy.
