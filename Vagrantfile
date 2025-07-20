@@ -1,8 +1,7 @@
 Vagrant.configure("2") do |config|
   nodes = {
     "master" => "192.168.56.10",
-    "worker1" => "192.168.56.11",
-    "worker2" => "192.168.56.12"
+    "worker1" => "192.168.56.11"
   }
 
   config.vm.box = "ubuntu/focal64"

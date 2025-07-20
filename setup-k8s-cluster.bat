@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 REM Kubernetes Cluster Setup Script for Windows
-REM This script automates the setup of a 3-node Kubernetes cluster using Vagrant
+REM This script automates the setup of a 2-node Kubernetes cluster using Vagrant
 REM Compatible with Windows systems
 
 echo ======================================
@@ -46,7 +46,7 @@ echo.
 REM Install Kubernetes on all nodes
 echo [INFO] Installing Kubernetes on all nodes...
 
-for %%n in (master worker1 worker2) do (
+for %%n in (master worker1) do (
     echo [INFO] Installing Kubernetes on %%n...
     
     vagrant ssh %%n -c "sudo mkdir -p /etc/apt/keyrings && curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg && echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list > /dev/null && sudo apt-get update && sudo apt-get install -y kubelet kubeadm kubectl && sudo apt-mark hold kubelet kubeadm kubectl && sudo sysctl -w net.ipv4.ip_forward=1 && echo 'net.ipv4.ip_forward=1' | sudo tee -a /etc/sysctl.conf && sudo sysctl -p"
@@ -96,7 +96,7 @@ echo [INFO] Join command retrieved
 echo.
 
 REM Join worker nodes
-for %%w in (worker1 worker2) do (
+for %%w in (worker1) do (
     echo [INFO] Joining %%w to the cluster...
     
     vagrant ssh %%w -c "sudo !join_command!"
@@ -130,8 +130,7 @@ echo [SUCCESS] Kubernetes cluster setup completed!
 echo.
 echo [INFO] Cluster Information:
 echo   - Master Node: 192.168.56.10
-echo   - Worker Node 1: 192.168.56.11
-echo   - Worker Node 2: 192.168.56.12
+echo   - Worker Node: 192.168.56.11
 echo.
 echo [INFO] To access the cluster:
 echo   vagrant ssh master

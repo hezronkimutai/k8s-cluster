@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Kubernetes Cluster Setup Script
-# This script automates the setup of a 3-node Kubernetes cluster using Vagrant
+# This script automates the setup of a 2-node Kubernetes cluster using Vagrant
 # Compatible with Linux and macOS systems
 
 set -e  # Exit on any error
@@ -68,7 +68,7 @@ start_vagrant_vms() {
 install_kubernetes_on_all_nodes() {
     log_info "Installing Kubernetes on all nodes..."
     
-    for node in master worker1 worker2; do
+    for node in master worker1; do
         log_info "Installing Kubernetes on $node..."
         
         vagrant ssh $node -c '
@@ -143,7 +143,7 @@ join_worker_nodes() {
     log_info "Join command retrieved: $JOIN_COMMAND"
     
     # Join worker nodes
-    for worker in worker1 worker2; do
+    for worker in worker1; do
         log_info "Joining $worker to the cluster..."
         
         vagrant ssh $worker -c "sudo $JOIN_COMMAND"
@@ -181,8 +181,7 @@ display_access_info() {
     echo ""
     log_info "Cluster Information:"
     echo "  - Master Node: 192.168.56.10"
-    echo "  - Worker Node 1: 192.168.56.11"
-    echo "  - Worker Node 2: 192.168.56.12"
+    echo "  - Worker Node: 192.168.56.11"
     echo ""
     log_info "To access the cluster:"
     echo "  vagrant ssh master"
