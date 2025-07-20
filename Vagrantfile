@@ -6,12 +6,17 @@ Vagrant.configure("2") do |config|
 
   config.vm.box = "ubuntu/focal64"
   config.ssh.insert_key = false  # Helps avoid SSH key mismatch issues
+  
+  # SSH timeout fixes
+  config.ssh.connect_timeout = 15
+  config.ssh.guest_port = 22
+  config.vm.boot_timeout = 900
+  config.vm.graceful_halt_timeout = 60
 
   nodes.each do |name, ip|
     config.vm.define name do |node|
       node.vm.hostname = name
       node.vm.network "private_network", ip: ip
-      node.vm.boot_timeout = 600
 
       node.vm.provider "virtualbox" do |vb|
         if name == "master"
@@ -21,6 +26,12 @@ Vagrant.configure("2") do |config|
           vb.memory = 1024
           vb.cpus = 1
         end
+        
+        # VirtualBox optimizations
+        vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+        vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+        vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
+        vb.customize ["modifyvm", :id, "--uartmode1", "file", File::NULL]
       end
 
       node.vm.provision "shell", inline: <<-SHELL
