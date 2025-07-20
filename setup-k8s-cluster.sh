@@ -3,6 +3,7 @@
 # Kubernetes Cluster Setup Script
 # This script automates the setup of a 2-node Kubernetes cluster using Vagrant
 # Compatible with Linux and macOS systems
+# Includes automatic HTML application deployment
 
 set -e  # Exit on any error
 
@@ -33,6 +34,14 @@ log_error() {
 # Check if command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
+}
+
+# Cleanup existing VMs
+cleanup_vms() {
+    log_info "Cleaning up any existing VMs..."
+    vagrant destroy -f
+    log_success "Cleanup completed"
+    echo ""
 }
 
 # Check prerequisites
@@ -175,20 +184,55 @@ verify_cluster() {
     log_success "Cluster verification completed"
 }
 
+# Deploy HTML application
+deploy_html_app() {
+    log_info "Deploying HTML application..."
+    
+    # Deploy the application
+    vagrant ssh master -c 'kubectl apply -f /vagrant/k8s-manifests/deployment.yaml'
+    if [ $? -ne 0 ]; then
+        log_error "Failed to deploy HTML application"
+        exit 1
+    fi
+    
+    # Deploy the service
+    vagrant ssh master -c 'kubectl apply -f /vagrant/k8s-manifests/service.yaml'
+    if [ $? -ne 0 ]; then
+        log_error "Failed to create HTML service"
+        exit 1
+    fi
+    
+    # Wait for pods to be ready
+    log_info "Waiting for HTML app pods to be ready..."
+    vagrant ssh master -c 'kubectl wait --for=condition=ready pod -l app=html-app --timeout=120s'
+    
+    log_success "HTML application deployed successfully!"
+}
+
+# Display final status
+display_final_status() {
+    log_info "Final cluster status:"
+    vagrant ssh master -c 'kubectl get pods,svc -o wide'
+    echo ""
+}
+
 # Display access information
 display_access_info() {
-    log_success "Kubernetes cluster setup completed!"
+    log_success "========================================="
+    log_success "Complete setup finished successfully!"
+    log_success "========================================="
     echo ""
     log_info "Cluster Information:"
     echo "  - Master Node: 192.168.56.10"
     echo "  - Worker Node: 192.168.56.11"
     echo ""
+    log_info "Access your HTML application at:"
+    echo "  http://192.168.56.10:30080  (Master Node)"
+    echo "  http://192.168.56.11:30080  (Worker Node)"
+    echo ""
     log_info "To access the cluster:"
     echo "  vagrant ssh master"
     echo "  kubectl get nodes"
-    echo ""
-    log_info "To deploy applications, you can access the frontend at:"
-    echo "  http://192.168.56.10:30080 (after deploying your apps)"
     echo ""
     log_info "Useful commands:"
     echo "  vagrant status           # Check VM status"
@@ -203,12 +247,15 @@ main() {
     echo "======================================"
     echo ""
     
+    cleanup_vms
     check_prerequisites
     start_vagrant_vms
     install_kubernetes_on_all_nodes
     initialize_master
     join_worker_nodes
     verify_cluster
+    deploy_html_app
+    display_final_status
     display_access_info
     
     log_success "Setup completed successfully!"

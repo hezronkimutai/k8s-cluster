@@ -4,15 +4,22 @@ setlocal enabledelayedexpansion
 REM Kubernetes Cluster Setup Script for Windows
 REM This script automates the setup of a 2-node Kubernetes cluster using Vagrant
 REM Compatible with Windows systems
+REM Includes automatic HTML application deployment
 
 echo ======================================
-echo    Kubernetes Cluster Setup Script   
+echo    Kubernetes Cluster Setup Script
 echo ======================================
 echo.
 
 REM Set VirtualBox path explicitly
 set "VBOX_PATH=C:\Program Files\Oracle\VirtualBox"
 set "PATH=%PATH%;%VBOX_PATH%"
+
+REM Destroy any existing VMs first
+echo [INFO] Cleaning up any existing VMs...
+vagrant destroy -f
+echo [SUCCESS] Cleanup completed
+echo.
 
 REM Check if Vagrant is installed
 echo [INFO] Checking prerequisites...
@@ -151,5 +158,41 @@ echo   vagrant halt            # Stop all VMs
 echo   vagrant destroy -f      # Destroy all VMs
 echo.
 echo [SUCCESS] Setup completed successfully!
+echo.
+
+REM Deploy HTML Application
+echo [INFO] Deploying HTML application...
+vagrant ssh master -c "kubectl apply -f /vagrant/k8s-manifests/deployment.yaml"
+if %errorlevel% neq 0 (
+    echo [ERROR] Failed to deploy HTML application
+    pause
+    exit /b 1
+)
+
+vagrant ssh master -c "kubectl apply -f /vagrant/k8s-manifests/service.yaml"
+if %errorlevel% neq 0 (
+    echo [ERROR] Failed to create HTML service
+    pause
+    exit /b 1
+)
+
+echo [INFO] Waiting for HTML app pods to be ready...
+vagrant ssh master -c "kubectl wait --for=condition=ready pod -l app=html-app --timeout=120s"
+
+echo [SUCCESS] HTML application deployed successfully!
+echo.
+
+REM Display final status
+echo [INFO] Final cluster status:
+vagrant ssh master -c "kubectl get pods,svc -o wide"
+echo.
+
+echo [SUCCESS] ========================================
+echo [SUCCESS] Complete setup finished successfully!
+echo [SUCCESS] ========================================
+echo.
+echo [INFO] Access your HTML application at:
+echo   http://192.168.56.10:30080  (Master Node)
+echo   http://192.168.56.11:30080  (Worker Node)
 echo.
 pause
