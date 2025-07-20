@@ -20,11 +20,30 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-REM Check if VirtualBox is installed
+REM Check if VirtualBox is installed (check PATH first, then default location)
+set "VBOX_MANAGE="
 where vboxmanage >nul 2>&1
+if %errorlevel% equ 0 (
+    set "VBOX_MANAGE=vboxmanage"
+) else (
+    REM Check default VirtualBox installation path
+    if exist "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" (
+        set "VBOX_MANAGE=C:\Program Files\Oracle\VirtualBox\VBoxManage.exe"
+        echo [INFO] Found VirtualBox at default location
+    ) else (
+        echo [ERROR] VirtualBox is not installed or not found.
+        echo [INFO] Please install VirtualBox from: https://www.virtualbox.org/wiki/Downloads
+        echo [INFO] Or add VirtualBox to your PATH environment variable
+        pause
+        exit /b 1
+    )
+)
+
+REM Test VirtualBox installation
+"%VBOX_MANAGE%" --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [ERROR] VirtualBox is not installed or not in PATH.
-    echo [INFO] Please install VirtualBox from: https://www.virtualbox.org/wiki/Downloads
+    echo [ERROR] VirtualBox installation appears to be corrupted.
+    echo [INFO] Please reinstall VirtualBox from: https://www.virtualbox.org/wiki/Downloads
     pause
     exit /b 1
 )

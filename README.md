@@ -63,6 +63,22 @@ If you're using VirtualBox:
 2. Download the appropriate version for your OS
 3. Install following the standard installation process
 
+#### VirtualBox PATH Configuration
+
+After installation, VirtualBox may not be automatically added to your system PATH. The provided setup scripts ([`setup-k8s-cluster-fixed.bat`](setup-k8s-cluster-fixed.bat) for Windows, [`setup-k8s-cluster.sh`](setup-k8s-cluster.sh) for Linux/macOS) include automatic detection for common VirtualBox installation locations:
+
+**Windows locations checked:**
+- System PATH (if available)
+- `C:\Program Files\Oracle\VirtualBox\VBoxManage.exe` (default installation)
+
+**Linux/macOS locations checked:**
+- System PATH (if available)
+- `/usr/bin/vboxmanage` (standard Linux install)
+- `/usr/local/bin/vboxmanage` (custom Linux install)
+- `/Applications/VirtualBox.app/Contents/MacOS/VBoxManage` (macOS)
+
+If you encounter VirtualBox detection issues, you can manually add VirtualBox to your PATH or use the improved setup scripts that automatically locate VirtualBox installations.
+
 ### 3. Disable Hyper-V (for Windows)
 
 Ensure Hyper-V is disabled when using VirtualBox:
@@ -234,6 +250,64 @@ http://192.168.56.10:30080
 ```
 
 Use `kubectl get pods`, `kubectl get services`, `kubectl logs` etc. to manage the application.
+
+## Troubleshooting
+
+### VirtualBox Not Found Error
+
+If you encounter the error:
+```
+[ERROR] VirtualBox is not installed or not in PATH.
+```
+
+**Solution:** Use the improved setup scripts that automatically detect VirtualBox:
+- **Windows:** Run [`setup-k8s-cluster-fixed.bat`](setup-k8s-cluster-fixed.bat) instead of the original script
+- **Linux/macOS:** The [`setup-k8s-cluster.sh`](setup-k8s-cluster.sh) script includes automatic detection
+
+These scripts check multiple common installation locations and will find VirtualBox even if it's not in your system PATH.
+
+**Manual PATH Fix (Alternative):**
+If you prefer to add VirtualBox to your PATH manually:
+
+**Windows:**
+1. Add `C:\Program Files\Oracle\VirtualBox` to your PATH environment variable
+2. Restart your command prompt/PowerShell
+
+**Linux/macOS:**
+```bash
+# Add to your shell profile (.bashrc, .zshrc, etc.)
+export PATH=$PATH:/usr/bin
+# or wherever VirtualBox is installed
+```
+
+### Vagrant SSH Issues
+
+If `vagrant ssh` fails, try:
+```bash
+vagrant reload
+vagrant provision
+```
+
+### Memory Issues
+
+If VMs fail to start due to memory constraints:
+- Reduce VM memory allocation in the [`Vagrantfile`](Vagrantfile)
+- Ensure your host system has sufficient available RAM
+
+## Automated Setup Scripts
+
+For quick cluster deployment, use the provided automation scripts:
+
+- **[`setup-k8s-cluster-fixed.bat`](setup-k8s-cluster-fixed.bat)** - Windows automation with improved VirtualBox detection
+- **[`setup-k8s-cluster.sh`](setup-k8s-cluster.sh)** - Linux/macOS automation with enhanced prerequisite checking
+
+These scripts handle the complete setup process including:
+- Prerequisite validation
+- VM provisioning
+- Kubernetes installation
+- Cluster initialization
+- CNI network setup
+- Application deployment
 
 ## Notes
 

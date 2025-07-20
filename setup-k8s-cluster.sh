@@ -54,9 +54,30 @@ check_prerequisites() {
         exit 1
     fi
     
-    if ! command_exists vboxmanage; then
-        log_error "VirtualBox is not installed. Please install VirtualBox first."
-        log_info "Visit: https://www.virtualbox.org/wiki/Downloads"
+    # Check VirtualBox installation (check PATH first, then common locations)
+    VBOX_MANAGE=""
+    if command_exists vboxmanage; then
+        VBOX_MANAGE="vboxmanage"
+    elif [ -f "/usr/bin/vboxmanage" ]; then
+        VBOX_MANAGE="/usr/bin/vboxmanage"
+        log_info "Found VirtualBox at /usr/bin/vboxmanage"
+    elif [ -f "/usr/local/bin/vboxmanage" ]; then
+        VBOX_MANAGE="/usr/local/bin/vboxmanage"
+        log_info "Found VirtualBox at /usr/local/bin/vboxmanage"
+    elif [ -f "/Applications/VirtualBox.app/Contents/MacOS/VBoxManage" ]; then
+        VBOX_MANAGE="/Applications/VirtualBox.app/Contents/MacOS/VBoxManage"
+        log_info "Found VirtualBox on macOS"
+    else
+        log_error "VirtualBox is not installed or not found."
+        log_info "Please install VirtualBox from: https://www.virtualbox.org/wiki/Downloads"
+        log_info "Or add VirtualBox to your PATH environment variable"
+        exit 1
+    fi
+    
+    # Test VirtualBox installation
+    if ! "$VBOX_MANAGE" --version >/dev/null 2>&1; then
+        log_error "VirtualBox installation appears to be corrupted."
+        log_info "Please reinstall VirtualBox from: https://www.virtualbox.org/wiki/Downloads"
         exit 1
     fi
     
