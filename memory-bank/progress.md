@@ -36,7 +36,35 @@ The setup script is running through these automated steps:
 - Provide cluster access instructions
 - Document final cluster state
 
+## Monitoring Stack Integration ✅
+Successfully integrated Grafana and Prometheus monitoring into the Kubernetes cluster:
+
+### New Monitoring Capabilities:
+- **Real-time Metrics**: CPU, memory, disk, and network monitoring
+- **Application Monitoring**: HTML and Express app performance tracking
+- **Cluster Health**: Kubernetes API server, nodes, and pods monitoring
+- **Visual Dashboards**: Pre-configured Grafana dashboards for cluster overview
+- **Service Discovery**: Automatic detection of monitorable services
+
+### Deployment Options:
+1. **Quick Deploy**: Use [`deploy-monitoring.bat`](../deploy-monitoring.bat:1) for one-click setup
+2. **Manual Deploy**: Individual component deployment with separate manifests
+3. **All-in-One**: Complete stack deployment with [`deploy-monitoring.yaml`](../k8s-manifests/deploy-monitoring.yaml:1)
+
+### Access Information:
+- **Prometheus**: Port 30090 (metrics collection and queries)
+- **Grafana**: Port 30030 (dashboards and visualization)
+- **Authentication**: admin/admin123 for Grafana access
+
 ## Files Created
 - [`memory-bank/projectbrief.md`](projectbrief.md:1): Project overview and objectives
 - [`memory-bank/activeContext.md`](activeContext.md:1): Current situation and focus
 - [`setup-k8s-cluster-fixed.bat`](../setup-k8s-cluster-fixed.bat:1): Fixed setup script with VirtualBox path handling
+
+### Monitoring Files Added:
+- [`k8s-manifests/monitoring-namespace.yaml`](../k8s-manifests/monitoring-namespace.yaml:1): Monitoring namespace
+- [`k8s-manifests/prometheus.yaml`](../k8s-manifests/prometheus.yaml:1): Prometheus deployment with RBAC
+- [`k8s-manifests/grafana.yaml`](../k8s-manifests/grafana.yaml:1): Grafana with pre-configured dashboards
+- [`k8s-manifests/servicemonitors.yaml`](../k8s-manifests/servicemonitors.yaml:1): Service monitoring configuration
+- [`k8s-manifests/deploy-monitoring.yaml`](../k8s-manifests/deploy-monitoring.yaml:1): Complete monitoring stack
+- [`deploy-monitoring.bat`](../deploy-monitoring.bat:1): Windows monitoring deployment script

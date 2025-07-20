@@ -4,6 +4,10 @@ metadata:
   name: html-app-service
   labels:
     app: html-app
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "80"
+    prometheus.io/path: "/metrics"
 spec:
   type: NodePort
   selector:

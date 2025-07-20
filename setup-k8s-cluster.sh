@@ -267,6 +267,25 @@ deploy_express_app() {
     log_success "Express.js application deployed successfully!"
 }
 
+# Deploy monitoring stack (Grafana + Prometheus)
+deploy_monitoring_stack() {
+    log_info "Deploying monitoring stack (Grafana + Prometheus)..."
+    
+    # Deploy the complete monitoring stack
+    vagrant ssh master -c 'kubectl apply -f /vagrant/k8s-manifests/deploy-monitoring.yaml'
+    if [ $? -ne 0 ]; then
+        log_error "Failed to deploy monitoring stack"
+        exit 1
+    fi
+    
+    # Wait for monitoring pods to be ready
+    log_info "Waiting for monitoring stack to be ready..."
+    vagrant ssh master -c 'kubectl wait --for=condition=ready pod -l app=prometheus -n monitoring --timeout=180s'
+    vagrant ssh master -c 'kubectl wait --for=condition=ready pod -l app=grafana -n monitoring --timeout=180s'
+    
+    log_success "Monitoring stack deployed successfully!"
+}
+
 # Display final status
 display_final_status() {
     log_info "Final cluster status:"
@@ -288,6 +307,11 @@ display_access_info() {
     log_info "Application Access:"
     echo "  - HTML App: http://192.168.56.10:30080, http://192.168.56.11:30080, http://192.168.56.12:30080"
     echo "  - Express.js API: http://192.168.56.10:30081, http://192.168.56.11:30081, http://192.168.56.12:30081"
+    echo ""
+    log_info "Monitoring Access:"
+    echo "  - Prometheus: http://192.168.56.10:30090, http://192.168.56.11:30090, http://192.168.56.12:30090"
+    echo "  - Grafana: http://192.168.56.10:30030, http://192.168.56.11:30030, http://192.168.56.12:30030"
+    echo "  - Grafana Login: admin / admin123"
     echo ""
     log_info "Express.js API Endpoints:"
     echo "  - GET / - Welcome message"
@@ -321,6 +345,7 @@ main() {
     verify_cluster
     deploy_html_app
     deploy_express_app
+    deploy_monitoring_stack
     display_final_status
     display_access_info
     

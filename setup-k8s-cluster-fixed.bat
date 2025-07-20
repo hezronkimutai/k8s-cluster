@@ -178,6 +178,39 @@ if %errorlevel% neq 0 (
 echo [SUCCESS] Express.js application deployed successfully
 echo.
 
+REM Deploy HTML application
+echo [INFO] Deploying HTML application...
+
+vagrant ssh master -c "kubectl apply -f /vagrant/k8s-manifests/deployment.yaml"
+if %errorlevel% neq 0 (
+    echo [ERROR] Failed to deploy HTML application
+    pause
+    exit /b 1
+)
+
+vagrant ssh master -c "kubectl apply -f /vagrant/k8s-manifests/service.yaml"
+if %errorlevel% neq 0 (
+    echo [ERROR] Failed to create HTML application service
+    pause
+    exit /b 1
+)
+
+echo [SUCCESS] HTML application deployed successfully
+echo.
+
+REM Deploy monitoring stack (Grafana + Prometheus)
+echo [INFO] Deploying monitoring stack (Grafana + Prometheus)...
+
+vagrant ssh master -c "kubectl apply -f /vagrant/k8s-manifests/deploy-monitoring.yaml"
+if %errorlevel% neq 0 (
+    echo [ERROR] Failed to deploy monitoring stack
+    pause
+    exit /b 1
+)
+
+echo [SUCCESS] Monitoring stack deployed successfully
+echo.
+
 REM Verify cluster status
 echo [INFO] Verifying cluster status...
 echo [INFO] Waiting 30 seconds for nodes to be ready...
@@ -204,6 +237,11 @@ echo.
 echo [INFO] Application Access:
 echo   - HTML App: http://192.168.56.10:30080, http://192.168.56.11:30080, http://192.168.56.12:30080
 echo   - Express.js API: http://192.168.56.10:30081, http://192.168.56.11:30081, http://192.168.56.12:30081
+echo.
+echo [INFO] Monitoring Access:
+echo   - Prometheus: http://192.168.56.10:30090, http://192.168.56.11:30090, http://192.168.56.12:30090
+echo   - Grafana: http://192.168.56.10:30030, http://192.168.56.11:30030, http://192.168.56.12:30030
+echo   - Grafana Login: admin / admin123
 echo.
 echo [INFO] Express.js API Endpoints:
 echo   - GET / - Welcome message

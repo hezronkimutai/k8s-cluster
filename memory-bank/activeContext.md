@@ -56,5 +56,36 @@ Added second worker node (worker2) to create a 3-node Kubernetes cluster:
 - **Worker Node 1**: 192.168.56.11 (1GB RAM, 1 CPU)
 - **Worker Node 2**: 192.168.56.12 (1GB RAM, 1 CPU)
 
+## Latest Update - Monitoring Stack Added ✅
+Added comprehensive Grafana + Prometheus monitoring stack to the Kubernetes cluster:
+
+### New Monitoring Components:
+1. **[`k8s-manifests/monitoring-namespace.yaml`](../k8s-manifests/monitoring-namespace.yaml:1)**: Dedicated monitoring namespace
+2. **[`k8s-manifests/prometheus.yaml`](../k8s-manifests/prometheus.yaml:1)**: Complete Prometheus setup with RBAC and configuration
+3. **[`k8s-manifests/grafana.yaml`](../k8s-manifests/grafana.yaml:1)**: Grafana with pre-configured dashboards and data sources
+4. **[`k8s-manifests/servicemonitors.yaml`](../k8s-manifests/servicemonitors.yaml:1)**: ServiceMonitors for application monitoring
+5. **[`k8s-manifests/deploy-monitoring.yaml`](../k8s-manifests/deploy-monitoring.yaml:1)**: All-in-one monitoring deployment manifest
+6. **[`deploy-monitoring.bat`](../deploy-monitoring.bat:1)**: Windows deployment script for monitoring stack
+
+### Enhanced Services:
+- **[`k8s-manifests/service.yaml`](../k8s-manifests/service.yaml:1)**: Added Prometheus annotations to HTML app service
+- **[`k8s-manifests/express-service.yaml`](../k8s-manifests/express-service.yaml:1)**: Added Prometheus annotations to Express app service
+
+### Access Points:
+- **Prometheus**: `http://192.168.56.10:30090` (metrics collection and monitoring)
+- **Grafana**: `http://192.168.56.10:30030` (visualization dashboards)
+- **Default Login**: admin/admin123
+
+### Monitoring Capabilities:
+- Kubernetes cluster metrics (nodes, pods, API server)
+- Application metrics (HTML app, Express app)
+- System metrics (CPU, memory, disk, network)
+- Custom dashboards for cluster monitoring
+- Service discovery and automatic target detection
+
 ## Next Actions
-User can now run the setup scripts to create a 3-node Kubernetes cluster with enhanced scalability and redundancy.
+User can now:
+1. Run the setup scripts to create a 3-node Kubernetes cluster with enhanced scalability and redundancy
+2. Deploy the monitoring stack using [`deploy-monitoring.bat`](../deploy-monitoring.bat:1)
+3. Access comprehensive monitoring and observability tools
+4. Monitor cluster health and application performance through Grafana dashboards

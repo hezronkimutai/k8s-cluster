@@ -294,6 +294,118 @@ If VMs fail to start due to memory constraints:
 - Reduce VM memory allocation in the [`Vagrantfile`](Vagrantfile)
 - Ensure your host system has sufficient available RAM
 
+## Monitoring Stack (Grafana + Prometheus)
+
+This cluster includes a complete monitoring stack with Grafana and Prometheus for observability and metrics collection.
+
+### Quick Deployment
+
+Deploy the monitoring stack with the automated script:
+
+```bash
+# Windows
+deploy-monitoring.bat
+
+# Linux/macOS
+chmod +x deploy-monitoring.sh && ./deploy-monitoring.sh
+```
+
+### Manual Deployment
+
+Deploy individual components:
+
+```bash
+# Deploy monitoring namespace
+kubectl apply -f k8s-manifests/monitoring-namespace.yaml
+
+# Deploy Prometheus
+kubectl apply -f k8s-manifests/prometheus.yaml
+
+# Deploy Grafana
+kubectl apply -f k8s-manifests/grafana.yaml
+
+# Or deploy everything at once
+kubectl apply -f k8s-manifests/deploy-monitoring.yaml
+```
+
+### Access Monitoring Tools
+
+**Prometheus** (Metrics Collection):
+- URL: `http://192.168.56.10:30090`, `http://192.168.56.11:30090`, or `http://192.168.56.12:30090`
+- Access Prometheus web UI to view metrics and targets
+- Check `/targets` endpoint to see monitored services
+
+**Grafana** (Visualization Dashboard):
+- URL: `http://192.168.56.10:30030`, `http://192.168.56.11:30030`, or `http://192.168.56.12:30030`
+- **Username:** `admin`
+- **Password:** `admin123`
+- Pre-configured with Prometheus data source
+- Includes kubernetes cluster monitoring dashboard
+
+### Monitored Components
+
+The monitoring stack automatically collects metrics from:
+
+- **Kubernetes API Server** - Control plane metrics
+- **Kubernetes Nodes** - Node-level system metrics
+- **Kubernetes Pods** - Pod and container metrics
+- **HTML App** - Application-specific metrics
+- **Express App** - Node.js application metrics
+- **Prometheus** - Self-monitoring
+- **Grafana** - Dashboard metrics
+
+### Monitoring Architecture
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Applications  │───▶│    Prometheus    │───▶│     Grafana     │
+│  (HTML/Express) │    │ (Metrics Store)  │    │  (Dashboards)   │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+    Port 30080              Port 30090              Port 30030
+```
+
+### Available Metrics
+
+- **System Metrics**: CPU, Memory, Disk, Network usage
+- **Kubernetes Metrics**: Pod status, node readiness, API server health
+- **Application Metrics**: HTTP requests, response times, error rates
+- **Custom Metrics**: Application-specific business metrics
+
+### Troubleshooting Monitoring
+
+**Check monitoring pods status:**
+```bash
+kubectl get pods -n monitoring
+```
+
+**View Prometheus logs:**
+```bash
+kubectl logs -n monitoring deployment/prometheus
+```
+
+**View Grafana logs:**
+```bash
+kubectl logs -n monitoring deployment/grafana
+```
+
+**Reset Grafana password:**
+```bash
+kubectl delete pod -n monitoring -l app=grafana
+```
+
+**Port forwarding for local access:**
+```bash
+# Prometheus
+kubectl port-forward -n monitoring svc/prometheus-service 9090:9090
+
+# Grafana
+kubectl port-forward -n monitoring svc/grafana-service 3000:3000
+```
+
+---
+
 ## Automated Setup Scripts
 
 For quick cluster deployment, use the provided automation scripts:
