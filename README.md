@@ -332,8 +332,35 @@ kubectl apply -f k8s-manifests/express-deployment.yaml
 kubectl apply -f k8s-manifests/express-service.yaml
 ```
 
-### Troubleshooting
-For issues with pod deployment or resource constraints, see [`MONITORING_GUIDE.md`](MONITORING_GUIDE.md).
+### Monitoring Stack Troubleshooting
+
+#### Resource Optimization
+The monitoring stack has been optimized for 2-node clusters with limited resources:
+- **Prometheus**: 200Mi memory (down from 350Mi), stable v2.45.0 image
+- **Grafana**: 300Mi memory (down from 750Mi), v10.2.0 image
+- **Total Usage**: 500Mi memory (down from 1006Mi)
+
+#### Common Monitoring Issues
+
+**Pod Stuck in Pending:**
+```bash
+# Check node resources
+kubectl describe nodes
+kubectl describe pod <pod-name> -n monitoring
+```
+
+**ImagePullBackOff:**
+```bash
+# Check image availability and versions
+kubectl describe pod <pod-name> -n monitoring
+```
+
+**Memory Issues:**
+```bash
+# Check current memory usage
+kubectl top nodes
+kubectl top pods -n monitoring
+```
 
 ### Manual Deployment
 
@@ -397,6 +424,45 @@ The monitoring stack automatically collects metrics from:
 - **Kubernetes Metrics**: Pod status, node readiness, API server health
 - **Application Metrics**: HTTP requests, response times, error rates
 - **Custom Metrics**: Application-specific business metrics
+
+### Network Connectivity Troubleshooting
+
+If you can't access services at `http://192.168.56.10:30XXX`, try these steps:
+
+#### Quick Network Checks
+```bash
+# Check if VMs are running
+vagrant status
+
+# Test from inside the cluster
+vagrant ssh master
+curl http://localhost:30080   # Frontend
+curl http://localhost:30081   # Backend API
+curl http://localhost:30090   # Prometheus
+curl http://localhost:30030   # Grafana
+
+# Test network connectivity
+ping 192.168.56.10
+```
+
+#### Common Network Issues
+
+**Connection timed out or refused:**
+- **Windows Firewall**: Allow VirtualBox through firewall or temporarily disable
+- **VirtualBox Network**: Restart VMs with `vagrant halt && vagrant up`
+- **Host-Only Network**: Ensure "vboxnet0" exists in VirtualBox Manager with IP range 192.168.56.x
+
+**Backend returns 404 or empty response:**
+```bash
+# Check service configuration
+vagrant ssh master -c "kubectl get service express-app-service -o yaml"
+# Ensure targetPort: 80 (not 3000)
+```
+
+#### Network Requirements
+- VirtualBox Host-Only Adapter with IP Range: 192.168.56.0/24
+- No proxy blocking local network access
+- Windows: VirtualBox allowed through firewall
 
 ### Troubleshooting Monitoring
 
