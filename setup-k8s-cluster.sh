@@ -343,8 +343,8 @@ main() {
     initialize_master
     join_worker_nodes
     verify_cluster
-    deploy_html_app
     deploy_express_app
+    deploy_html_app
     deploy_monitoring_stack
     display_final_status
     display_access_info
